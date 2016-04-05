@@ -1,21 +1,96 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <style type="text/css">
 div {
   word-wrap: break-word;
   width: 500px;
 }
 </style>
-<title>Data.Generics</title>
+<title>Data.Generics (aka SYB)</title>
 </head>
 <body>
 
-<h3>Data.Generics</h3>
+<h3>Data.Generics (aka SYB)</h3>
 <div>
 The documentation of Data.Generics, aka syb or scrap your boilerplate,
 is extremely ... shall we say ... terse.  So when I figure something
 out I like to make a note about it here so I can refer back.
+
+Anything you want to use the Data.Generics library on must be an instance
+of <code>Data</code> (<code>Typeable</code>?).  So what can you do?
+
+<h4>Making Queries</h4>
+
+The <code>mkQ</code> function turns a normal function of type <code>a</code>
+into a function suitable for use where a GenericQ is expected.  For example,
+<pre>
+% ghci
+λ :set -XDeriveDataTypeable
+λ :m +Data.Generics
+λ data T = T Int Char Double deriving (Data, Show)
+λ mkQ "?" (show :: T -> String) (T 1 'c' 3.5)
+"T 1 'c' 3.5"
+</pre>
+(It is important to understand how we are applying a signature to the
+function <code>show</code> to restrict it to operate only on
+type <code>T</code>.  Without this the type of <code>show</code>
+is <code>show :: Show a => a -> String</code>, which will not be
+recognized by the syb mechansims as matching <code>T</code>.)
+
+The function <code>gmapQ</code> operates on the "immediate subterms"
+of the value, hence
+<pre>
+λ gmapQ (mkQ "?" (show :: Int -> String)) (T 1 'c' 3.5)
+["1","?","?"]
+</pre>
+We can use <code>extQ</code> to "extend" our query function to operate
+on more than one type:
+<pre>
+λ gmapQ (mkQ "?" (show :: Int -> String) `extQ` (show :: Char -> String)) (T 1 'c' 3.5)
+["1","'c'","?"]
+</pre>
+We use <code>mkQ</code> to create queries - functions that find values
+of a set of particular types and converts each to a single type.
+Similarly, we can use <code>mkT</code> to create transformations,
+which convert values of the generic types to different values of the
+generic type:
+<pre>
+λ everywhere (mkT ((+ 1) :: Int -> Int)) (T 1 'c' 3.5)
+(T 2 'c' 3.5)
+λ everywhere (mkT ((+ 1) :: Int -> Int) `extT` (const 'z' :: Char -> Char)) (T 1 'c' 3.5)
+(T 2 'z' 3.5)
+</pre>
+
+<h4>And now...</h4>
+
+I have a large data structure for which I currently use template
+haskell to generate the function <code>peekRow :: s -> [Peek
+s]</code>.  The elements of this list normally correspond to the
+fields of whatever the data structure <code>s</code> represents, but
+there is a list of exceptions to this rule for types <code>Either,
+Maybe, (a, b), [a], Map</code>, and a type similar to <code>Map</code>
+named <code>Order</code>.  What does this look like if I switch from
+template haskell to syb?  Here is an example of the code generated for
+a structure named <code>ImageSize</code> with three fields:
+<pre>
+peekRow (Proxy) (_s@(ImageSize {})) =
+    mconcat [concatMap (\pth -> case pth of
+                                  p@(Path_ImageSize_dim _wp) -> map (\a -> peekCons p (Just a)) (toListOf (toLens p) _s :: [Dimension])
+                                  _ -> [])
+                       (paths (Proxy :: Proxy Univ) _s (Proxy :: Proxy Dimension)),
+             concatMap (\pth -> case pth of
+                                  p@(Path_ImageSize_size _wp) -> map (\a -> peekCons p (Just a)) (toListOf (toLens p) _s :: [Double])
+                                  _ -> [])
+                       (paths (Proxy :: Proxy Univ) _s (Proxy :: Proxy Double)),
+             concatMap (\pth -> case pth of
+                                  p@(Path_ImageSize_units _wp) -> map (\a -> peekCons p (Just a)) (toListOf (toLens p) _s :: [Units])
+                                  _ -> [])
+                       (paths (Proxy :: Proxy Univ) _s (Proxy :: Proxy Units))] :: [Peek Univ ImageSize]
+</pre>
+The <code>paths</code> function returns a list; this needs to be
+changed to a fold.
+
 </div>
 
 </body>
