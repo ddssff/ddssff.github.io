@@ -1,0 +1,175 @@
+<head>
+<style>
+.boxed {
+  font: 12px courier;
+  border: 1px solid green;
+  padding: 5px;
+  margin: 3px;
+}
+ul {
+  list-style-type: none;
+}
+
+.hr-sect {
+display: flex;
+flex-basis: 100%;
+align-items: center;
+color: rgba(0, 0, 0, 0.35);
+margin: 8px 0px;
+}
+.hr-sect::before,
+.hr-sect::after {
+content: "";
+flex-grow: 1;
+background: rgba(0, 0, 0, 0.35);
+height: 1px;
+font-size: 0px;
+line-height: 0px;
+margin: 0px 8px;
+}
+
+</style>
+</head>
+
+<a href="https://hackage.haskell.org/package/lens/docs/doc-index.html">Index</a>
+
+<table>
+ <tr>
+    <td colspan="2">
+      <div class="boxed">
+	  <div align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Fold.html">Fold</a> s a</b></div>
+          <div><div class="hr-sect">builders</div>
+          <div>folded :: Foldable f => Fold (f a) a</div>
+          <div><div class="hr-sect">operations</div>
+          <div>foldOf :: Getting a s a -> s -> a</div>
+          <div>foldMapOf :: Monoid r => Fold s a -> (a -> r) -> s -> r</div>
+          <div>foldrOf :: Fold s a -> (a -> r -> r) -> r -> s -> r</div>
+          <div>toListOf :: Fold s a -> s -> [a]</div>
+          <div>anyOf :: Fold s a -> (a -> Bool) -> s -> Bool</div>
+          <div>traverseOf_ :: Applicative f => Fold s a -> (a -> f r) -> s -> f ()</div>
+	  <div>...</div>
+	  <div>(^.) :: Monoid r => s -> Fold s r -> r</div>
+	  <div>view :: (MonadReader s m, Monoid r) => Fold s r -> m r</div>
+	  <div>use :: (MonadState s m, Monoid r) => Fold s r -> m r</div>
+      </div>
+    </td>
+    <td colspan="2">
+      <div class="boxed">
+	  <div align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Setter.html">Setter</a> s t a b</b></div>
+          <div class="hr-sect">builders</div>
+          <div>mapped :: Functor f => Setter (f a) (f b) a b</div>
+          <div>lifted :: Monad m => Setter (m a) (m b) a b</div>
+          <div class="hr-sect">operations</div>
+          <div>over :: ASetter s t a b -> (a -> b) -> s -> t</div>
+          <div>set :: ASetter s t a b -> b -> s -> t <span style="color: rgba(0, 0, 0, 0.35)"> -- aka (.~)</span></div>
+          <div>(%=) :: MonadState s m => ASetter s s a b -> (a -> b) -> m () <span style="color: rgba(0, 0, 0, 0.35)"> -- aka modifying</span</div>
+          <div>(.=) :: MonadState s m => ASetter s s a b -> b -> m ()</div>
+          <div class="hr-sect">identities</div>
+          <div>set l y (set l x a) ≡ set l y a</div>
+          <div>over l id ≡ id</div>
+          <div>over l f . over l g ≡ over l (f . g)</div>
+      </div>
+    </td>
+ </tr>
+
+ <tr><td align="center" colspan="4">(arrows)</td></tr>
+
+ <tr>
+    <td colspan="2">
+      <div class="boxed">
+	  <div align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Getter.html">Getter</a> s a</b></div>
+          <div class="hr-sect">builders</div>
+          <div>to :: (Profunctor p, Contravariant f) => (s -> a) -> Optic' p f s a</div>
+          <div>like :: (Profunctor p, Contravariant f, Functor f) => a -> Optic' p f s a</div>
+	  <span style="font-family: helvetica">(Why Optic')?</span>
+          <div class="hr-sect">operations</div>
+          <div>(^.) :: s -> Getting a s a -> a</div>
+          <div>use :: MonadState s m => Getting a s a -> m a</div>
+          <div>listening :: MonadWriter w m => Getting u w u -> m a -> m (a, u)</div>
+          <div>view :: MonadReader s m => Getting a s a -> m a</div>
+          <div class="hr-sect">identities</div>
+          <div>to f . to g ≡ to (g . f)</dev>
+          <div>a ^. to f ≡ f a</dev>
+        </ul>
+      </div>
+    </td>
+    <td colspan="2">
+      <div class="boxed">
+        <ul>
+	  <li align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Traversal.html">Traversal</a> s t a b</b></li>
+          <div class="hr-sect">types</div>
+          <div>type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t</div>
+          <div class="hr-sect">builders</div>
+          <div>singular :: (Conjoined p, Functor f) => Traversing p f s t a a -> Over p f s t a a</div>
+          <div><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Traversal.html#v:traverseOf">traverseOf</a> :: LensLike f s t a b -> (a -> f b) -> s -> f t</div>
+          <div class="hr-sect">operators</div>
+          <div>traversed :: Traversable f => IndexedTraversal Int (f a) (f b) a b</div>
+        </ul>
+      </div>
+    </td>
+ </tr>
+
+ <tr><td align="center" colspan="4">(arrows)</td></tr>
+
+  <tr>
+    <td colspan="2" rowspan="3">
+      <div class="boxed">
+        <ul>
+	  <li align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Lens.html">Lens</a> s t a b</b></li>
+          <div class="hr-sect">builders</div>
+	  <div>lens :: (s -> a) -> (s -> b -> t) -> Lens s t a b</div>
+        </ul>
+      </div>
+     </td>
+    <td colspan="2">
+     <div class="boxed">
+        <ul>
+	  <li align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Review.html">Review</a> s a</b></li>
+        </ul>
+     </div>
+    </td>
+  </tr>
+ <tr><td align="center" colspan="4">(arrows)</td></tr>
+  <tr>
+     <td colspan="2">
+      <div class="boxed">
+        <ul>
+	  <li align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Prism.html">Prism</a> s t a b</b></li>
+        </ul>
+      </div>
+     </td>
+  </tr>
+
+ <tr><td align="center" colspan="4">(arrows)</td></tr>
+
+  <tr>
+     <td colspan="1" width="250px"></td>
+     <td colspan="2">
+      <div class="boxed">
+	  <div align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Iso.html">Iso</a> s t a b</b></div>
+          <div class="hr-sect">builders</div>
+          <div>iso :: (s -> a) -> (b -> t) -> Iso s t a b</div>
+          <div class="hr-sect">combiners</div>
+	  <div>from :: AnIso s t a b -> Iso b a t s</div>
+          <div class="hr-sect">identities</div>
+	  <div>f . from f ≡ id</div>
+	  <div>from f . f ≡ id</div>
+      </div>
+     </td>
+     <td colspan="1" width="250px"></td>
+  </tr>
+
+ <tr><td align="center" colspan="2">(arrows)</td></tr>
+
+  <tr>
+     <td colspan="1"></td>
+     <td colspan="2" align="center">
+      <div class="boxed">
+        <ul>
+	  <li align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Equality.html">Equality</a> s t a b</b></li>
+        </ul>
+      </div>
+     </td>
+     <td colspan="1"></td>
+  </tr>
+</table>
