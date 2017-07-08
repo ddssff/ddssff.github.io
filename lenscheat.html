@@ -61,10 +61,12 @@ margin: 0px 8px;
           <div>lifted :: Monad m => Setter (m a) (m b) a b</div>
           <div class="hr-sect">operations</div>
           <div>over :: ASetter s t a b -> (a -> b) -> s -> t</div>
-          <div>set :: ASetter s t a b -> b -> s -> t <span style="color: rgba(0, 0, 0, 0.35)"> -- aka (.~)</span></div>
-          <div>(%=) :: MonadState s m => ASetter s s a b -> (a -> b) -> m () <span style="color: rgba(0, 0, 0, 0.35)"> -- aka modifying</span</div>
+          <div>set :: ASetter s t a b -> b -> s -> t</div>
+          <div>modifying :: MonadState s m => ASetter s s a b -> (a -> b) -> m ()</div>
           <div>(.=) :: MonadState s m => ASetter s s a b -> b -> m ()</div>
+          <div>(%=) ≡ modifying</div>
           <div class="hr-sect">identities</div>
+	  <div>set ≡ (.~)</div>
           <div>set l y (set l x a) ≡ set l y a</div>
           <div>over l id ≡ id</div>
           <div>over l f . over l g ≡ over l (f . g)</div>
@@ -96,7 +98,7 @@ margin: 0px 8px;
     <td colspan="2">
       <div class="boxed">
         <ul>
-	  <li align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Traversal.html">Traversal</a> s t a b</b></li>
+	  <div align="center"><b><a href="https://hackage.haskell.org/package/lens/docs/Control-Lens-Traversal.html">Traversal</a> s t a b</b></div>
           <div class="hr-sect">types</div>
           <div>type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t</div>
           <div class="hr-sect">builders</div>
