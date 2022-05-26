@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+div {
+  word-wrap: break-word;
+  width: 500px;
+}
+</style>
+<title>Data.Generics (aka SYB)</title>
+</head>
+<body>
+
+<h2>Notes on Haskell Exceptions</h2>
+<h3><tt>Control.Exception</tt></h3>
+
+<p>Anything in the Exception class can be thrown, and can be wrapped with the
+<tt>SomeException</tt> constructor:
+</p>
+
+<pre>data SomeException = forall e . Exception e => SomeException e</pre>
+
+<p>The <tt>Exception</tt> class has methods <tt>toException</tt>
+and <tt>fromException</tt> to convert your exception type <tt>e</tt>
+to and from <tt>SomeException</tt> respectively.
+</p>
+
+<pre>
+class (Typeable e, Show e) => Exception e where
+    toException   :: e -> SomeException
+    fromException :: SomeException -> Maybe e
+</pre>
+
+<p>The <tt>fromException</tt> method is just <tt>cast</tt> by default,
+which returns <tt>Nothing</tt> when applied to the wrong type.</p>
+
+So there's no sure way of knowing at a particular point in the code
+whether some exception has been thrown inside that is now causing its
+execution to be abandoned, unless you have just tried to catch that
+exact exception type.  This suggests that creating a lot of
+knew <tt>Exception</tt> instances with other Exception values wrapped
+inside is not a good strategy.  Instead we catch
+the <tt>IOException</tt>, wrap it up in another type <tt>e</tt>, and
+then return it in a function with a <tt>MonadError e m</tt> constraint.
+
+<h2>The Exception Functions</h2>
+<ul>
+<li>throw = raise# (toException e)
+<li>catch
+<li>handle = flip catch
+<li>try = catch and return an Either
+<li>evaluate (in GHC.IO) = force evaluation and exceptions in lazy values
+<li>mask = perform IO with asynchronous interrupts masked (deferred.)  See bracket
+</ul>
+
+<h2>Asynchronous Exceptions</h2>
+<ul>
+<li>throwTo = cause an asynchronous exception in another thread</li>
+</ul>
+
+<h2>The Exception Modules</h2>
+<ul>
+<li>Control.Exception</li>
+<li>Control.Exception.Base</li>
+<li>GHC.Exception</li>
+<li>GHC.Exception.Type</li>
+<li>GHC.IO.Exception</li>
+<li>Control.Monad.Catch - Ed Kmett's generalization of IO exceptions</li>
+</ul>
+
+<h2>IO</h2>
+
+So my challenge is that I have an IO operation I want to run from some
+code in another monad, and I want to know that any IO exception it
+throws has been caught and wrapped up in an <tt>e</tt>.
+
+</body>
+</html>
