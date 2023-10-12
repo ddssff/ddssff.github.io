@@ -26,6 +26,7 @@ div {
     instances must be converted to instances for the con types.
     Safecopy instances deserve special consideration.
 
+  <br>
     Old:
     <pre>
       data TableColumn v
@@ -41,7 +42,6 @@ div {
           deriving (Generic, Show, Serialize, Eq, Ord, Functor)
     </pre>
 
-    <br>
     New:
     <pre>
       class TableColumn (col :: * -> *) (v :: *)
@@ -64,8 +64,10 @@ div {
       instance SafeCopy v => SafeCopy (RowControlColumn v) where version = 1; kind = base
     </pre>
 
+  <br>
     Occurences of the old type become type variables:
 
+  <br>
     Old:
     <pre>
       newtype TableColumns v = TableColumns (NonEmpty (v, [TableColumn v]))
@@ -75,12 +77,41 @@ div {
     <pre>
       newtype TableColumns con v = TableColumns (NonEmpty (v, [con v]))
     </pre>
-    <br>
+
+  <br>
     Functions that used the old type become polymorphic:
 
-    Old: <pre>filterTableColumns :: (TableColumn v -> Bool) -> TableColumns v -> TableColumns v</pre>
+  <br>
+    Old:
+    <pre>
+      filterTableColumns :: (TableColumn v -> Bool) -> TableColumns v -> TableColumns v
+    </pre>
 
-    New: <pre>filterTableColumns :: (con v -> Bool) -> TableColumns con v -> TableColumns con v</pre>
+    New:
+    <pre>
+      filterTableColumns :: (con v -> Bool) -> TableColumns con v -> TableColumns con v
+    </pre>
+
+  <br>
+    Functions that case on the sum type become class methods.
+
+    Old:
+    <pre>
+      w :: [TableColumn v] -> Int
+      w = sum . fmap (\case ValueColumn{..} -> _columnSpan; _ -> 1)
+    </pre>
+
+    New:
+    <pre>
+      class TableColumn (con :: * -> *) (v :: *) where
+        w :: [con v] -> Int
+
+      instance TableColumn ValueColumn v where
+        w = sum . fmap _columnSpan
+
+      instance TableColumn RowControlColumn v where
+        w _ = 1
+      </pre>
 
   </li>
 </ul>
