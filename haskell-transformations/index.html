@@ -17,4 +17,68 @@ div {
 
 <ol>
   <li>If any of the type's constuctors matches the type name rename it</li>
+  <li>
+    Split up the sum type, making each constructor a type.  (These
+    will be called the con types.)  Create a type class with no
+    methods and the name of the sum type.  It will have one type
+    variable corresponding to the con type.  If the original sum type
+    had type variables the class will also have these.  The sum type
+    instances must be converted to instances for the con types.
+    Safecopy instances deserve special consideration.
+
+    Old:
+    <code>
+      data TableColumn v
+          = ValueColumn
+            { _columnPath :: v
+            , _sortable :: Bool
+            , _columnRole :: UserRole
+            , _columnSpan :: Int
+            , _columnHeaderClasses :: [Text]
+            , _columnCellClasses :: [Text]
+            }
+          | RowControlColumn
+          deriving (Generic, Show, Serialize, Eq, Ord, Functor)
+    </code>
+
+    New:
+    <code>
+      class TableColumn (col :: * -> *) (v :: *)
+
+      data ValueColumn v =
+        ValueColumn
+        { _columnPath :: v
+        , _sortable :: Bool
+        , _columnRole :: UserRole
+        , _columnSpan :: Int
+        , _columnHeaderClasses :: [Text]
+        , _columnCellClasses :: [Text]
+        } deriving (Generic, Show, Serialize, Eq, Ord, Functor)
+
+      instance SafeCopy v => SafeCopy (ValueColumn v) where version = 1; kind = base
+
+      data RowControlColumn v = RowControlColumn v
+        deriving (Generic, Show, Serialize, Eq, Ord, Functor)
+
+      instance SafeCopy v => SafeCopy (RowControlColumn v) where version = 1; kind = base
+    </code>
+
+    Occurences of the old type become type variables:
+
+    Old:
+    <code>
+      newtype TableColumns v = TableColumns (NonEmpty (v, [TableColumn v]))
+    </code>
+
+    New:
+    <code>
+      newtype TableColumns con v = TableColumns (NonEmpty (v, [con v]))
+    </code>
+
+    Functions that used the old type become polymorphic:
+
+    Old: <code>filterTableColumns :: (TableColumn v -> Bool) -> TableColumns v -> TableColumns v</code>
+
+    New: <code>filterTableColumns :: (con v -> Bool) -> TableColumns con v -> TableColumns con v</code>
+  </li>
 </ul>
