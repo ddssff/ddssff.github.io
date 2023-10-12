@@ -27,7 +27,7 @@ div {
     Safecopy instances deserve special consideration.
 
     Old:
-    <code>
+    <pre>
       data TableColumn v
           = ValueColumn
             { _columnPath :: v
@@ -39,10 +39,11 @@ div {
             }
           | RowControlColumn
           deriving (Generic, Show, Serialize, Eq, Ord, Functor)
-    </code>
+    </pre>
 
+    <br>
     New:
-    <code>
+    <pre>
       class TableColumn (col :: * -> *) (v :: *)
 
       data ValueColumn v =
@@ -61,24 +62,25 @@ div {
         deriving (Generic, Show, Serialize, Eq, Ord, Functor)
 
       instance SafeCopy v => SafeCopy (RowControlColumn v) where version = 1; kind = base
-    </code>
+    </pre>
 
     Occurences of the old type become type variables:
 
     Old:
-    <code>
+    <pre>
       newtype TableColumns v = TableColumns (NonEmpty (v, [TableColumn v]))
-    </code>
+    </pre>
 
     New:
-    <code>
+    <pre>
       newtype TableColumns con v = TableColumns (NonEmpty (v, [con v]))
-    </code>
-
+    </pre>
+    <br>
     Functions that used the old type become polymorphic:
 
-    Old: <code>filterTableColumns :: (TableColumn v -> Bool) -> TableColumns v -> TableColumns v</code>
+    Old: <pre>filterTableColumns :: (TableColumn v -> Bool) -> TableColumns v -> TableColumns v</pre>
 
-    New: <code>filterTableColumns :: (con v -> Bool) -> TableColumns con v -> TableColumns con v</code>
+    New: <pre>filterTableColumns :: (con v -> Bool) -> TableColumns con v -> TableColumns con v</pre>
+
   </li>
 </ul>
