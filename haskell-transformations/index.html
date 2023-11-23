@@ -119,4 +119,42 @@ div {
      Lists of the sum type can be temporarily supported using
      ExistentialQuantifiers.
   </li>
-</ul>
+</ol>
+
+<h2>Changing a Type Class to a Record</h2>
+<ol>
+  <li>Methods become fields
+  <li>The constraint becomes a function argument
+  <li>The constraint is replaced by the superclasses
+</ol>
+
+<h2>Changing a Record into functions</h2>
+<ol>
+  <li>Initial
+    data TemplateTypeInfo template =
+      TemplateTypeInfo
+      { templateKeyPath :: PathTo 'L (ReportType template) (TemplateId template)
+      , templateHtmlPath :: PathTo 'L (ReportType template) (ValueType template)
+      , templateLibraryPath :: PathTo 'L (ProfileType template) (AssocList RenderedUnicode (ValueType template))
+      } deriving Generic
+  <li>Rename the fileds
+    data TemplateTypeInfo template =
+      TemplateTypeInfo
+      { templateKeyPath' :: PathTo 'L (ReportType template) (TemplateId template)
+      , templateHtmlPath' :: PathTo 'L (ReportType template) (ValueType template)
+      , templateLibraryPath' :: PathTo 'L (ProfileType template) (AssocList RenderedUnicode (ValueType template))
+      } deriving Generic
+  <li>Add a class for each field:
+    class TemplateKeyPath template a where
+      templateKeyPath :: a -> PathTo 'L (ReportType template) (TemplateId template)
+    instance TemplateKeyPath template (TemplateTypeInfo template) where
+      templateKeyPath = templateKeyPath' @template
+    class TemplateHtmlPath template a where
+      templateHtmlPath :: a -> PathTo 'L (ReportType template) (ValueType template)
+    instance TemplateHtmlPath template (TemplateTypeInfo template) where
+      templateHtmlPath = templateHtmlPath' @template
+    class TemplateLibraryPath template a where
+      templateLibraryPath :: a -> PathTo 'L (ProfileType template) (AssocList RenderedUnicode (ValueType template))
+    instance TemplateLibraryPath template (TemplateTypeInfo template) where
+      templateLibraryPath = templateLibraryPath' @template
+</ol>
